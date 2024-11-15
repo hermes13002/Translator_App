@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:translator_app/features/splash/views/splash_screen.dart';
 import 'package:device_preview/device_preview.dart';
 
@@ -16,7 +17,7 @@ void main() {
       defaultDevice: Devices.android.samsungGalaxyA50,
 
       // Show toolbar to let users test different devices
-      isToolbarVisible: true,
+      isToolbarVisible: false,
 
       // Keep English only to avoid confusion in demos
       availableLocales: const [Locale('en', 'US')],
@@ -101,5 +102,10 @@ class MyApp extends StatelessWidget {
         );
       }
     );
+  }
+
+  Future<InitializationStatus> _initGoogleMobileAds() {
+    // TODO: Initialize Google Mobile Ads SDK
+    return MobileAds.instance.initialize();
   }
 }

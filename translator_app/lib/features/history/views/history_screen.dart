@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryScreen extends StatefulWidget {
   final List<Map<String, String>> history;
@@ -24,6 +27,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
           .where((entry) => entry['original']!.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
   }
+
+  late List<Map<String, String>> _history;
+
+  @override
+  void initState() {
+    super.initState();
+    _history = widget.history;
+  }
+
+  void _deleteEntry(int index) async {
+    setState(() {
+      _history.removeAt(index);
+    });
+
+    // Save updated history to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('translation_history', jsonEncode(_history));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +118,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               subtitle: Text(entry['translated'] ?? '', overflow: TextOverflow.ellipsis,),
                               tileColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _deleteEntry(index),
+                              ),
                             ),
                             
                             SizedBox(height: 8.h),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:translator_app/features/history/views/history_screen.dart';
 import 'package:translator_app/features/home/widgets/text_container/text_output_container.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -35,14 +36,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
   bool isSwitched = false;
   bool _isListening = false;
 
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+
   List<Map<String, String>> _history = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHistory();
-  }
-
 
   void _translate() async {
     if (inputText.text.isEmpty) return;
@@ -58,13 +55,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _saveToHistory(inputText.text, translation.text);
   }
 
-
   Future<void> _speak(String text) async {  
     await _flutterTts.setLanguage(_targetLanguage.code);
     await _flutterTts.setPitch(1.0);  // Adjust pitch if needed
     await _flutterTts.speak(text);
   }
-
 
   void _startListening() async {
     bool available = await _speechToText.initialize(
@@ -110,7 +105,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _speechToText.stop();
   }
 
-   void _saveToHistory(String original, String translated) async {
+  void _saveToHistory(String original, String translated) async {
     final prefs = await SharedPreferences.getInstance();
 
     Map<String, String> newEntry = {
@@ -146,12 +141,36 @@ class _TranslateScreenState extends State<TranslateScreen> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+
+    // Initialize the BannerAd
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-1618616184793594/8944560689', // Replace with your Ad Unit ID
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (Ad ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          ad.dispose();
+          print('Ad failed to load: $error');
+        },
+      ),
+    )..load();
+  }
 
   @override
   void dispose() {
     _flutterTts.stop();
     _speechToText.stop();
     inputText.dispose();
+    _bannerAd.dispose();
     super.dispose();
   }
 
@@ -170,7 +189,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
         leading: const Padding(
           padding: EdgeInsets.only(left: 24.0),
           child: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/man.png'),
+            backgroundImage: AssetImage('assets/images/map.png'),
           ),
         ),
         title: Text('Translate', style: GoogleFonts.poppins(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold),),
@@ -180,6 +199,20 @@ class _TranslateScreenState extends State<TranslateScreen> {
             padding: const EdgeInsets.only(right: 16.0),
             child: Row(
               children: [
+                InkWell(
+                  onTap: _viewHistory,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.history)
+                  )
+                ),
+
+                SizedBox(width: screenWidth * 0.04,),
+                
                 InkWell(
                   onTap: (){
                     Navigator.pushReplacement(context,
@@ -193,20 +226,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.settings_outlined)
-                  )
-                ),
-
-                SizedBox(width: screenWidth * 0.03,),
-                
-                InkWell(
-                  onTap: _viewHistory,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.history)
                   )
                 ),
               ],
@@ -368,7 +387,13 @@ class _TranslateScreenState extends State<TranslateScreen> {
                     TextOutputContainer(
                       textOutput: outputText,
                       onTapSpeak: () => _speak(outputText),
-                    )
+                    ),
+
+                    if (_isBannerAdLoaded)
+                    SizedBox(
+                      height: _bannerAd.size.height.toDouble(),
+                      child: AdWidget(ad: _bannerAd),
+                    ),
                   ]
                 )
               )
