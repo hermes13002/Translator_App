@@ -35,7 +35,7 @@ class TextOutputContainer extends StatelessWidget {
                 children: [
                   Text(
                     textOutput,
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.justify,
                     style: GoogleFonts.poppins(fontSize: 17.sp, color: Colors.black, fontWeight: FontWeight.w600)
                   ),
                 ],

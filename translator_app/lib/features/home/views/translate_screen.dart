@@ -7,6 +7,7 @@ import 'package:translator_app/features/settings/views/settings_screen.dart';
 import 'package:translator/translator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:translator_app/features/home/model/lang_model.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -19,6 +20,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   final GoogleTranslator _translator = GoogleTranslator();
   final TextEditingController inputText = TextEditingController();
   final FlutterTts _flutterTts = FlutterTts();
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
 
   late String outputText = '';
 
@@ -26,6 +28,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   Language _targetLanguage = languages[1];
 
   bool isSwitched = false;
+  bool _isListening = false;
 
 
   void _translate() async {
@@ -47,9 +50,37 @@ class _TranslateScreenState extends State<TranslateScreen> {
     await _flutterTts.speak(text);
   }
 
+
+  void _startListening() async {
+    bool available = await _speechToText.initialize(
+      onStatus: (status) => print('Status: $status'),
+      onError: (error) => print('Error: $error'),
+    );
+
+    if (available) {
+      setState(() {
+        _isListening = true;
+      });
+      _speechToText.listen(
+        onResult: (result) {
+          setState(() {
+            inputText.text = result.recognizedWords;
+          });
+        },
+        localeId: _sourceLanguage.code,
+      );
+    }
+  }
+
+  void _stopListening() {
+    setState(() => _isListening = false);
+    _speechToText.stop();
+  }
+
   @override
   void dispose() {
     _flutterTts.stop();
+    _speechToText.stop();
     inputText.dispose();
     super.dispose();
   }
@@ -69,7 +100,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
         leading: const Padding(
           padding: EdgeInsets.only(left: 24.0),
           child: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/ayo.jpeg'),
+            backgroundImage: AssetImage('assets/images/man.png'),
           ),
         ),
         title: Text('Translate', style: GoogleFonts.poppins(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold),),
@@ -110,7 +141,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                         dropdownA(),
 
                         GestureDetector(
-                           onTap: () {
+                          onTap: () {
                             setState(() {
                               isSwitched = !isSwitched;
                             });
@@ -215,17 +246,15 @@ class _TranslateScreenState extends State<TranslateScreen> {
                                         SizedBox(width: screenWidth * 0.04,),
                                     
                                         InkWell(
-                                          onTap: (){},
-                                          child: const Icon(Icons.mic_none)),
+                                          onTap: (){_isListening ? _stopListening : _startListening;},
+                                          child: Icon(_isListening ? Icons.mic_off : Icons.mic)),
                                       ],
                                     ),
                                   ],
                                 )
                               ],
                             ),
-                          ),
-
-                          
+                          ),                         
                         ],
                       )
                     ),
@@ -305,7 +334,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   width: screenWidth * 0.07,
                   decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(50)),
                   child: Center(
-                    child: Image.asset('assets/images/france.png'),
+                    child: Image.asset(lang.icon),
                   ),
                 ),
                 
@@ -410,7 +439,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   width: screenWidth * 0.07,
                   decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(50)),
                   child: Center(
-                    child: Image.network(lang.icon),
+                    child: Image.asset(lang.icon),
                   ),
                 ),
                 
