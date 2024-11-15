@@ -65,9 +65,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
             
                 SwitchListTile( 
-                  thumbColor: const MaterialStatePropertyAll(Colors.white),
+                  thumbColor: const WidgetStatePropertyAll(Colors.white),
                   activeColor: const Color.fromRGBO(2, 253, 253, 1),
-                  trackOutlineColor: const MaterialStatePropertyAll(Colors.white),
+                  trackOutlineColor: const WidgetStatePropertyAll(Colors.white),
                   contentPadding: EdgeInsets.zero,
                   title: Text('Email Notifications', style: GoogleFonts.poppins(fontSize: 15.5.sp, fontWeight: FontWeight.bold, color: Colors.black)),
                   subtitle: Text('Allow app to send email notifications on your device', style: GoogleFonts.poppins(fontSize: screenWidth * 0.035, color: Colors.grey[700])),

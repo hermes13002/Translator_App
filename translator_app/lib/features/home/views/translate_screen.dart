@@ -5,6 +5,7 @@ import 'package:translator_app/features/home/widgets/text_container/text_output_
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:translator_app/features/settings/views/settings_screen.dart';
 import 'package:translator/translator.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:translator_app/features/home/model/lang_model.dart';
 
 class TranslateScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class TranslateScreen extends StatefulWidget {
 class _TranslateScreenState extends State<TranslateScreen> {
   final GoogleTranslator _translator = GoogleTranslator();
   final TextEditingController inputText = TextEditingController();
+  final FlutterTts _flutterTts = FlutterTts();
 
   late String outputText = '';
 
@@ -24,13 +26,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
   Language _targetLanguage = languages[1];
 
   bool isSwitched = false;
-
-  // dynamic selectedLanguageA;
-  // dynamic selectedLanguageB;
-
-  // // String selectedLanguage = 'English';
-
-  // late String selectedLanguageCodeB = '';
 
 
   void _translate() async {
@@ -43,6 +38,20 @@ class _TranslateScreenState extends State<TranslateScreen> {
     );
 
     setState(() => outputText = translation.text);
+  }
+
+
+  Future<void> _speak(String text) async {  
+    await _flutterTts.setLanguage(_targetLanguage.code);
+    await _flutterTts.setPitch(1.0);  // Adjust pitch if needed
+    await _flutterTts.speak(text);
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    inputText.dispose();
+    super.dispose();
   }
 
 
@@ -98,7 +107,6 @@ class _TranslateScreenState extends State<TranslateScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // countryContainerA(),
                         dropdownA(),
 
                         GestureDetector(
@@ -110,7 +118,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
                           child: Container(
                             height: screenHeight * 0.065,
                             width: screenWidth * 0.13,
-                            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(50)),
+                            decoration: const BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                            ),
                             child: const Center(
                               child: Icon(Icons.change_circle_outlined, color: Colors.white, size: 35),
                             ),
@@ -189,14 +200,16 @@ class _TranslateScreenState extends State<TranslateScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        InkWell(
-                                          onTap: (){},
-                                          child: const Icon(Icons.clear_rounded)),
+                                        Material(
+                                          child: InkWell(
+                                            onTap: (){inputText.clear();},
+                                            child: const Icon(Icons.clear_rounded)),
+                                        ),
                                     
                                         SizedBox(width: screenWidth * 0.04,),
                                     
                                         InkWell(
-                                          onTap: (){},
+                                          onTap: (){_speak(inputText.text);},
                                           child: const Icon(Icons.volume_up_outlined)),
                                     
                                         SizedBox(width: screenWidth * 0.04,),
@@ -220,7 +233,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
                     SizedBox(height: screenHeight * 0.036,),
 
                     TextOutputContainer(
-                      text: outputText,
+                      textOutput: outputText,
+                      onTapSpeak: () => _speak(outputText),
                     )
                   ]
                 )
@@ -396,7 +410,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   width: screenWidth * 0.07,
                   decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(50)),
                   child: Center(
-                    child: Image.asset('assets/images/france.png'),
+                    child: Image.network(lang.icon),
                   ),
                 ),
                 

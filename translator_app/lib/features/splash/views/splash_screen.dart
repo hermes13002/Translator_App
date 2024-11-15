@@ -18,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     // Navigate to the next screen after 5 seconds
     Future.delayed(const Duration(seconds: 5), () {
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const TranslateScreen())
       );
