@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:translator_app/features/history/views/history_screen.dart';
 import 'package:translator_app/features/home/widgets/text_container/text_output_container.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:translator_app/features/settings/views/settings_screen.dart';
@@ -8,6 +12,7 @@ import 'package:translator/translator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:translator_app/features/home/model/lang_model.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -30,6 +35,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
   bool isSwitched = false;
   bool _isListening = false;
 
+  List<Map<String, String>> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
 
   void _translate() async {
     if (inputText.text.isEmpty) return;
@@ -41,6 +54,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
     );
 
     setState(() => outputText = translation.text);
+    
+    _saveToHistory(inputText.text, translation.text);
   }
 
 
@@ -53,8 +68,26 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   void _startListening() async {
     bool available = await _speechToText.initialize(
-      onStatus: (status) => print('Status: $status'),
-      onError: (error) => print('Error: $error'),
+      onStatus: (status) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Status: $status', style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white)),
+          backgroundColor: const Color.fromRGBO(204, 0, 255, 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          ),
+          elevation: 2.0,
+          duration: const Duration(seconds: 10),
+        ));
+      },
+      onError: (error) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $error', style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white)),
+          backgroundColor: const Color.fromRGBO(204, 0, 255, 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          ),
+          elevation: 2.0,
+          duration: const Duration(seconds: 10),
+        ));
+      },
     );
 
     if (available) {
@@ -76,6 +109,43 @@ class _TranslateScreenState extends State<TranslateScreen> {
     setState(() => _isListening = false);
     _speechToText.stop();
   }
+
+   void _saveToHistory(String original, String translated) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    Map<String, String> newEntry = {
+      'original': original,
+      'translated': translated,
+    };
+
+    setState(() {
+      _history.add(newEntry);
+    });
+
+    // Save updated history to SharedPreferences
+    prefs.setString('translation_history', jsonEncode(_history));
+  }
+
+  void _loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? savedHistory = prefs.getString('translation_history');
+
+    if (savedHistory != null) {
+      setState(() {
+        _history = List<Map<String, String>>.from(jsonDecode(savedHistory));
+      });
+    }
+  }
+
+  void _viewHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistoryScreen(history: _history),
+      ),
+    );
+  }
+
 
   @override
   void dispose() {
@@ -104,24 +174,42 @@ class _TranslateScreenState extends State<TranslateScreen> {
           ),
         ),
         title: Text('Translate', style: GoogleFonts.poppins(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold),),
-        centerTitle: true,
+        // centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 24.0),
-            child: InkWell(
-              onTap: (){
-                Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen())
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  shape: BoxShape.circle,
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: (){
+                    Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen())
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.settings_outlined)
+                  )
                 ),
-                child: const Icon(Icons.settings_outlined)
-              )
+
+                SizedBox(width: screenWidth * 0.03,),
+                
+                InkWell(
+                  onTap: _viewHistory,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.history)
+                  )
+                ),
+              ],
             ),
           )
         ],
@@ -248,6 +336,22 @@ class _TranslateScreenState extends State<TranslateScreen> {
                                         InkWell(
                                           onTap: (){_isListening ? _stopListening : _startListening;},
                                           child: Icon(_isListening ? Icons.mic_off : Icons.mic)),
+
+                                        SizedBox(width: screenWidth * 0.04,),
+                                        
+                                        Material(child:InkWell(
+                                          onTap: (){
+                                            Clipboard.setData(ClipboardData(text: inputText.text));
+                                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                              content: Text('Text Copied', style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white)),
+                                              backgroundColor: const Color.fromRGBO(204, 0, 255, 1),
+                                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                                              ),
+                                              elevation: 2.0,
+                                              )
+                                            );
+                                          },
+                                          child: const Icon(Icons.content_copy))),
                                       ],
                                     ),
                                   ],

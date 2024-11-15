@@ -56,10 +56,10 @@ class TextOutputContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     // Material(child:InkWell(
-                    //   onTap: (){},
+                    //   onTap: (){textOutput.replaceAll(textOutput, '');},
                     //   child: const Icon(Icons.clear_rounded)),),
 
-                    SizedBox(width: screenWidth * 0.04,),
+                    // SizedBox(width: screenWidth * 0.04,),
                     
                     Material(child:InkWell(
                       onTap: onTapSpeak,
