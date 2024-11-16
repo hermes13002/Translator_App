@@ -52,12 +52,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     height: screenHeight * 0.09,
                     width: screenWidth * 0.18,
                     child: const CircleAvatar(
-                      backgroundImage: AssetImage('assets/images/ayo.jpeg'),
+                      backgroundImage: AssetImage('assets/images/man.png'),
                       // backgroundColor: Colors.green,
                       // child: Text('AS', style: GoogleFonts.poppins(fontSize: 15.5.sp, color: Colors.white)),
                     ),
                   ),
-                  title: Text('Ayoigbala Soares', style: GoogleFonts.poppins(fontSize: 15.5.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+                  title: Text('Your name...', style: GoogleFonts.poppins(fontSize: 15.5.sp, fontWeight: FontWeight.bold, color: Colors.black)),
                   subtitle: Text('Edit your profile', style: GoogleFonts.poppins(fontSize: screenWidth * 0.04, color: Colors.black)),
                   trailing: const Icon(Icons.keyboard_arrow_right, size: 30,)
                 ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:translator_app/features/home/views/translate_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   final List<Map<String, String>> history;
@@ -56,6 +57,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('History', style: GoogleFonts.poppins(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold),),
+        centerTitle: true,
+        leading: InkWell(
+          onTap: (){
+            Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const TranslateScreen())
+            );
+          },
+          child: const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Icon(Icons.arrow_back_ios_new_rounded),
+          )
+        ),
         backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
       ),
       backgroundColor: const Color.fromRGBO(240, 240, 240, 1),

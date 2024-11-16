@@ -5,6 +5,8 @@ import 'package:translator_app/features/splash/views/splash_screen.dart';
 import 'package:device_preview/device_preview.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(
     DevicePreview(
       // White background looks professional in website embedding
@@ -78,8 +80,8 @@ void main() {
 
       /// Your app's entry point
       builder: (context) => const MyApp(),
-    )
-  );
+  ));
+  // runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -102,10 +104,5 @@ class MyApp extends StatelessWidget {
         );
       }
     );
-  }
-
-  Future<InitializationStatus> _initGoogleMobileAds() {
-    // TODO: Initialize Google Mobile Ads SDK
-    return MobileAds.instance.initialize();
   }
 }
