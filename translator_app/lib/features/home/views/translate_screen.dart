@@ -150,7 +150,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _bannerAd = BannerAd(
       adUnitId: 'ca-app-pub-1618616184793594/8944560689', // Replace with your Ad Unit ID
       size: AdSize.banner,
-      request: AdRequest(),
+      request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
           setState(() {
